@@ -107,14 +107,24 @@ String sID = "";
 
 
 unsigned long previousMillisA = 0;
-const long intervalA = 5000;
+const long intervalA = 3000;
 
 
 unsigned long previousMillisB = 0;
-const long intervalB = 1000;
+const long intervalB = 5000;
 
 unsigned long previousMillisC = 0;
 const long intervalC = 1000;
+
+
+String readString_key;
+String str_empty = "";
+bool readString_key_complete = false;
+String readString_value[3] = {"","",""};
+int readString_valueI = 1;
+int msgID = 0;
+String str_deviderA = ":";
+String str_deviderB = ",";
 
 
 void setup()
@@ -122,7 +132,9 @@ void setup()
   
   Serial.begin(115200);
   
-  analogReadResolution(12);
+  // #ifdef analogReadResolution
+    analogReadResolution(12);
+  // #endif
   
   pinMode(57, OUTPUT);
   // analogWrite(57,4096);
@@ -214,6 +226,16 @@ void setup()
     digitalWrite(PIN_RELAY4,LOW);
   #endif
   
+  
+  Serial.print("init:0-0-1");
+  Serial.print(str_deviderB);
+  
+  Serial.print("id");
+  Serial.print(str_deviderA);
+  Serial.print(sID);
+    
+  Serial.print("-");
+  Serial.println(msgID);
 }
 
 
@@ -232,15 +254,6 @@ double dewPoint(double tempf, double humidity) {
 }
 
 #endif
-
-String readString_key;
-String str_empty = "";
-bool readString_key_complete = false;
-String readString_value[3] = {"","",""};
-int readString_valueI = 1;
-int msgID = 0;
-String str_deviderA = ":";
-String str_deviderB = ",";
 
 void parseSerialCommand(String key,int val1,int val2,int val3){
   if(key == "") return;
@@ -307,10 +320,19 @@ void parseSerialCommand(String key,int val1,int val2,int val3){
     Serial.print(key);
     Serial.print(str_deviderA);
     Serial.print(val1);
-    Serial.print(str_deviderB);
+    Serial.print("-");
     Serial.print(val2);
-    Serial.print(str_deviderB);
-    Serial.println(val3); 
+    Serial.print("-");
+    Serial.print(val3); 
+    
+  Serial.print(str_deviderB);
+  
+  Serial.print("id");
+  Serial.print(str_deviderA);
+  Serial.print(sID);
+    
+  Serial.print("-");
+  Serial.println(msgID);
 }
 
 
@@ -371,107 +393,12 @@ void inputCheck(){
 
 void loop()
 {
+  msgID = millis();
+  
   unsigned long currentMillis = millis();
   
   // if (false) {
-  if (currentMillis - previousMillisA >= intervalA) {
-    previousMillisA = currentMillis;
-    
-    //do stuff here
-    
-    #ifdef ENABLE_WATER_RELAYS
-      Serial.print("w1:");
-      Serial.print(water1sensorAValue);
-      Serial.print("-");
-      Serial.print(water1sensorDValue);
-      Serial.print(str_deviderB);
-      
-      Serial.print("w2:");
-      Serial.print(water2sensorAValue);
-      Serial.print("-");
-      Serial.print(water2sensorDValue);
-      Serial.print(str_deviderB);
-        
-      Serial.print("w2a:");
-      Serial.print(water2sensorAValue_average);
-      Serial.print(str_deviderB);
-        
-      Serial.print("r1:");
-      Serial.print(relay1);
-      Serial.print(str_deviderB);
-      Serial.print("r2:");
-      Serial.print(relay2);
-      Serial.print(str_deviderB);
-      Serial.print("r3:");
-      Serial.print(relay3);
-      Serial.print(str_deviderB);
-      Serial.print("r4:");
-      Serial.print(relay4);
-      Serial.print(str_deviderB);
-      
-    
-    #endif
-    
-    #ifdef ENABLE_BH1750
-      Serial.print("l:");
-      Serial.print(lux);
-      Serial.print(str_deviderB);
-    #endif
-    
-    #ifdef ENABLE_BME280
-      Serial.print("t-c:");
-      Serial.print(String(tempc));
-      Serial.print(str_deviderB);
-      
-      Serial.print("t-f:");
-      Serial.print(String(tempf));
-      Serial.print(str_deviderB);
-      
-      Serial.print("p:");
-      Serial.print(String(pressure));
-      Serial.print(str_deviderB);
-      
-      Serial.print("h:");
-      Serial.print(String(humidity));
-      Serial.print(str_deviderB);
-      
-      due_point = dewPoint(tempf,humidity);
-      
-      Serial.print("d:");
-      Serial.print(String(due_point));
-      Serial.print(str_deviderB);
-    #endif
-    
-    
-    #ifdef ENABLE_LED
-      Serial.print("rgb0:");
-      Serial.print(rgb0[0]);Serial.print("-");Serial.print(rgb0[1]);Serial.print("-");Serial.print(rgb0[2]);
-      Serial.print(str_deviderB);
-      
-      
-      Serial.print("rgb1:");
-      Serial.print(rgb1[0]);Serial.print("-");Serial.print(rgb1[1]);Serial.print("-");Serial.print(rgb1[2]);
-      Serial.print(str_deviderB);
   
-      Serial.print("rgb_a:");
-      Serial.print(rgb_alpha);
-      Serial.print(str_deviderB);
-      
-      Serial.print("rgb_r:");
-      Serial.print(rgb_ratio);
-      Serial.print(str_deviderB);
-    #endif
-      
-    Serial.print("id");
-    Serial.print(str_deviderA);
-    Serial.print(sID);
-      
-    Serial.print("-");
-    Serial.println(msgID);
-  }
-  
-  
-  msgID++;
   bool runningWater = false;
   
     // digitalWrite(ENABLE_BUZZER,LOW);
@@ -549,27 +476,30 @@ void loop()
     
     
     
-    if(water2sensorAValue > (4095 - 55)){
-      digitalWrite(4,HIGH);
-    }else if(water2sensorDValue == 1){
-      digitalWrite(4,LOW);
-      // delay(100);
-      runningWater = true;
-    }
-    
-    
     relay1 = digitalRead(4);
     relay2 = digitalRead(5);
     relay3 = digitalRead(6);
     relay4 = digitalRead(7);
     
     if(relay1 || relay2 || relay3 || relay4){
-      delay(500);
+      // delay(500);
       runningWater = true;
       // return;
     }
+    
+    if(water2sensorAValue > (4095 - 55)){
+      digitalWrite(4,HIGH);
+      runningWater = true;
+    }else if(water2sensorDValue == 1 && runningWater){
+      digitalWrite(4,LOW);
+      // delay(100);
+      // runningWater = true;
+    }
+    
+    if(runningWater)
+      delay(500);
+    
   #endif
-  
   
   if (currentMillis - previousMillisC >= intervalC) {
     previousMillisC = currentMillis;
@@ -682,10 +612,27 @@ void loop()
     #ifdef ENABLE_BME280
     
       if(bme.begin()){ 
-        tempc = bme.readTemperature();
-        tempf = 1.8*tempc+32;
-        humidity = bme.readHumidity();
-        pressure = bme.readPressure() / 3386;
+              
+              
+        float _tempc;
+        float _humidity;
+        float _pressure;
+        
+        _tempc = bme.readTemperature();
+        if(_tempc > -32 && _tempc < 64){
+          tempc = _tempc;
+          tempf = 1.8*tempc+32;
+          
+          _humidity = bme.readHumidity();
+          if(_humidity != NAN){
+            humidity = _humidity;
+              
+            _pressure = bme.readPressure();
+            if(_pressure != NAN){
+              pressure = _pressure / 3386;
+            }
+          }
+        }
         
         if(humidity != 0){
           
@@ -695,7 +642,14 @@ void loop()
     #endif
     
     
-    #ifdef ENABLE_LED
+    
+    
+  }
+  
+  
+  }
+	
+	#ifdef ENABLE_LED
     
       int j = 1;
     	for(int i = 0; i < PIXEL_COUNT_RING; i++) {
@@ -742,12 +696,6 @@ void loop()
     
   
     #endif
-    
-  }
-  
-  
-  }
-	
 // 	Serial.print(checksum);
 // for (int i = 0; i < 3; i++){
 // 	Serial.print(sID);
@@ -755,6 +703,105 @@ void loop()
   // Serial.println("");
   
   // delay(500);
+  if(previousMillisA == 0) previousMillisA = currentMillis;
+  if (currentMillis - previousMillisA >= intervalA) {
+    previousMillisA = currentMillis;
+    
+    //do stuff here
+    
+    #ifdef ENABLE_WATER_RELAYS
+      Serial.print("w1:");
+      Serial.print(water1sensorAValue);
+      Serial.print("-");
+      Serial.print(water1sensorDValue);
+      Serial.print(str_deviderB);
+      
+      Serial.print("w2:");
+      Serial.print(water2sensorAValue);
+      Serial.print("-");
+      Serial.print(water2sensorDValue);
+      Serial.print(str_deviderB);
+        
+      Serial.print("w2a:");
+      Serial.print(water2sensorAValue_average);
+      Serial.print(str_deviderB);
+        
+      Serial.print("r1:");
+      Serial.print(relay1);
+      Serial.print(str_deviderB);
+      Serial.print("r2:");
+      Serial.print(relay2);
+      Serial.print(str_deviderB);
+      Serial.print("r3:");
+      Serial.print(relay3);
+      Serial.print(str_deviderB);
+      Serial.print("r4:");
+      Serial.print(relay4);
+      Serial.print(str_deviderB);
+      
+    
+    #endif
+    
+    #ifdef ENABLE_BH1750
+      Serial.print("l:");
+      Serial.print(lux);
+      Serial.print(str_deviderB);
+    #endif
+    
+    #ifdef ENABLE_BME280
+      Serial.print("t-c:");
+      Serial.print(String(tempc));
+      Serial.print(str_deviderB);
+      
+      Serial.print("t-f:");
+      Serial.print(String(tempf));
+      Serial.print(str_deviderB);
+      
+      Serial.print("p:");
+      Serial.print(String(pressure));
+      Serial.print(str_deviderB);
+      
+      Serial.print("h:");
+      Serial.print(String(humidity));
+      Serial.print(str_deviderB);
+      
+      due_point = dewPoint(tempf,humidity);
+      
+      Serial.print("d:");
+      Serial.print(String(due_point));
+      Serial.print(str_deviderB);
+    #endif
+    
+    
+    #ifdef ENABLE_LED
+      Serial.print("rgb0:");
+      Serial.print(rgb0[0]);Serial.print("-");Serial.print(rgb0[1]);Serial.print("-");Serial.print(rgb0[2]);
+      Serial.print(str_deviderB);
+      
+      
+      Serial.print("rgb1:");
+      Serial.print(rgb1[0]);Serial.print("-");Serial.print(rgb1[1]);Serial.print("-");Serial.print(rgb1[2]);
+      Serial.print(str_deviderB);
   
-  analogWrite(57,4096);
+      Serial.print("rgb_a:");
+      Serial.print(rgb_alpha);
+      Serial.print(str_deviderB);
+      
+      Serial.print("rgb_r:");
+      Serial.print(rgb_ratio);
+      Serial.print(str_deviderB);
+    #endif
+      
+    Serial.print("id");
+    Serial.print(str_deviderA);
+    Serial.print(sID);
+      
+    Serial.print("-");
+    Serial.println(msgID);
+  }
+  
+  
+  
+  if(analogRead(57) > 1)
+    analogWrite(57,4096);
 }

@@ -210,7 +210,7 @@ class Adafruit_BME280 {
         bool begin(uint8_t addr, TwoWire *theWire);
 		bool init();
 
-	void setSampling(sensor_mode mode              = MODE_NORMAL,
+	void setSampling(sensor_mode mode              = MODE_FORCED,
 			 sensor_sampling tempSampling  = SAMPLING_X16,
 			 sensor_sampling pressSampling = SAMPLING_X16,
 			 sensor_sampling humSampling   = SAMPLING_X16,

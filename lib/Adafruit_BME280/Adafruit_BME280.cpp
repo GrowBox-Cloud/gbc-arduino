@@ -140,6 +140,7 @@ bool Adafruit_BME280::init()
     if (_cs == -1) {
         // I2C
         _wire -> begin();
+        delay(100);
         // _wire ->setClock(400000); //Increase to fast I2C speed!
     } else {
         digitalWrite(_cs, HIGH);
@@ -169,13 +170,15 @@ bool Adafruit_BME280::init()
 
     // if chip is still reading calibration, delay
     while (isReadingCalibration())
-          delay(100);
+          delay(200);
 
     readCoefficients(); // read trimming parameters, see DS 4.2.2
 
     setSampling(); // use defaults
 
-    delay(100);
+    delay(200);
+    
+    takeForcedMeasurement();
 
     return true;
 }
@@ -389,9 +392,10 @@ uint32_t Adafruit_BME280::read24(byte reg)
         _wire -> beginTransmission((uint8_t)_i2caddr);
         _wire -> write((uint8_t)reg);
         _wire -> endTransmission();
-        delay(10);
         _wire -> requestFrom((uint8_t)_i2caddr, (byte)3);
 
+        delay(100);
+        
         value = _wire -> read();
         value <<= 8;
         value |= _wire -> read();
